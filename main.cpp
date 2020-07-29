@@ -45,8 +45,6 @@ void SerialWrite(unsigned char *data, int sz) {
   for (int i = 0; i < sz; i++) {
 		USART1->DR = data[i];
 		while(!(USART1->SR & (0x01<<6)));
-		USART2->DR = data[i];
-		while(!(USART2->SR & (0x01<<6)));
   }
 }
 
@@ -54,8 +52,6 @@ void SerialReadBytes(unsigned char *data, int sz) {
   for (int i = 0; i < sz; i++) {
 		while(!(USART1->SR & (0x01<<5)));
     data[i] = USART1->DR;
-		USART2->DR = data[i];
-		while(!(USART2->SR & (0x01<<6)));
   }
 }
 
@@ -143,7 +139,6 @@ int CheckResponse(unsigned char response[], int response_size) {
     return 0;
 }
 
-unsigned char te;
 
 int main(void){
 	
@@ -175,11 +170,8 @@ int main(void){
 	
 	
 	while(1){
-   //res2 = GetTemp();
-		while(!(USART1->SR & (0x01<<5)));
-    te = USART1->DR;
-		USART2->DR = te;
-		while(!(USART2->SR & (0x01<<6)));
+   res2 = GetTemp();
+		Delay(100000);
 	}
 	
 }
