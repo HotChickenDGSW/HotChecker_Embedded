@@ -165,19 +165,19 @@ int main(void){
 	USART2->BRR = 0xEA6;
 	
 	/*USART1 SETTING*/
-	RCC->APB2ENR |= (0x01<<14);
+	RCC->APB1ENR |= (0x01<<18);
 	
 	GPIOA->CRH &= ~(0xB<<(4*1));
 	GPIOA->CRH |= 0xB<<(4*1);
 	
-	USART1->CR1 |= (0x01<<2) | (0x01<<3) | (0x01<<13) ;
-	USART1->BRR = 0xEA6;
+	USART3->BRR = 0xEA6;
+	USART3->CR1 |= (0x01<<2) | (0x01<<3) | (0x01<<13) ;
 	
 	
 	while(1){
    //res2 = GetTemp();
-		while(!(USART1->SR & (0x01<<5)));
-    te = USART1->DR;
+		while(!(USART3->SR & (0x01<<5)));
+    te = USART3->DR;
 		USART2->DR = te;
 		while(!(USART2->SR & (0x01<<6)));
 	}
