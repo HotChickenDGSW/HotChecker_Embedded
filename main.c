@@ -158,28 +158,29 @@ int main(void){
 	RCC->APB2ENR |= (0x01<<2);
 	RCC->APB1ENR |= (0x01<<17);
 	
-	GPIOA->CRL &= ~(0xB<<(4*2));
+	GPIOA->CRL &= ~(0xf<<(4*2));
 	GPIOA->CRL |= 0xB<<(4*2);
 	
 	USART2->CR1 |= (0x01<<2) | (0x01<<3) | (0x01<<13) ;
 	USART2->BRR = 0xEA6;
 	
 	/*USART1 SETTING*/
-	RCC->APB1ENR |= (0x01<<18);
+	RCC->APB2ENR |= (0x01<<14);
 	
 	GPIOA->CRH &= ~(0xB<<(4*1));
 	GPIOA->CRH |= 0xB<<(4*1);
 	
-	USART3->BRR = 0xEA6;
-	USART3->CR1 |= (0x01<<2) | (0x01<<3) | (0x01<<13) ;
+	USART1->BRR = 0xEA6;
+	USART1->CR1 |= (0x01<<2) | (0x01<<3) | (0x01<<13) ;
 	
 	
 	while(1){
-   //res2 = GetTemp();
-		while(!(USART3->SR & (0x01<<5)));
-    te = USART3->DR;
-		USART2->DR = te;
-		while(!(USART2->SR & (0x01<<6)));
+   res2 = GetTemp();
+		Delay(1000);
+	//	while(!(USART1->SR & (0x01<<5)));
+ //   te = USART1->DR;
+//		USART2->DR = te;
+	//	while(!(USART2->SR & (0x01<<6)));
 	}
 	
 }
