@@ -32,54 +32,52 @@ void SysTick_Handler(void)
     
 }
 
-void BuildMessage(unsigned char address, unsigned char type, unsigned short start, unsigned short registers, unsigned char message[], int message_size) ;
-int CheckResponse(unsigned char response[], int response_size);
-int sendfc3(unsigned char address, unsigned short start, unsigned short registers, short values[]);
-void GetCRC(unsigned char message[], unsigned char crc[], int message_size) ;
+void BuildMessage(uint8_t  address, uint8_t  type, unsigned short start, unsigned short registers, uint8_t  message[], int message_size) ;
+int CheckResponse(uint8_t  response[], int response_size);
+int sendfc3(uint8_t  address, unsigned short start, unsigned short registers, short values[]);
+void GetCRC(uint8_t  message[], uint8_t  crc[], int message_size) ;
 
 int SerialAvailable() {
   return 1;
 }
 
-void SerialWrite(unsigned char *data, int sz) {
+void SerialWrite(uint8_t  *data, int sz) {
   for (int i = 0; i < sz; i++) {
+		while(!(USART1->SR & (0x01<<7)));
 		USART1->DR = data[i];
 		while(!(USART1->SR & (0x01<<6)));
-		USART2->DR = data[i];
-		while(!(USART2->SR & (0x01<<6)));
   }
 }
 
-void SerialReadBytes(unsigned char *data, int sz) {
+void SerialReadBytes(uint8_t  *data, int sz) {
   for (int i = 0; i < sz; i++) {
 		while(!(USART1->SR & (0x01<<5)));
     data[i] = USART1->DR;
-		USART2->DR = data[i];
-		while(!(USART2->SR & (0x01<<6)));
   }
 }
 
 void SerialPrintln(char *data) {
   int idx = 0;
   while (data[idx] != '\0') {
+		while(!(USART2->SR & (0x01<<7)));
 		USART2->DR = data[idx];
 		while(!(USART2->SR & (0x01<<6)));
     idx++;
   }
 }
 
-int sendfc3(unsigned char address, unsigned short start, unsigned short registers, short values[]) {
+int sendfc3(uint8_t  address, unsigned short start, unsigned short registers, short values[]) {
   if (SerialAvailable()) {
-    unsigned char message[8];
-    unsigned char response[5 + 2 * registers];
+    uint8_t  message[8];
+    uint8_t  response[5 + 2 * registers];
 
-    BuildMessage(address, (unsigned char)3, start, registers, message, (sizeof(message) / sizeof(unsigned char)));
+    BuildMessage(address, (uint8_t )3, start, registers, message, (sizeof(message) / sizeof(uint8_t )));
 
-    SerialWrite(message, sizeof(message) / sizeof(unsigned char));
-    SerialReadBytes(response, sizeof(response) / sizeof(unsigned char));
+    SerialWrite(message, sizeof(message) / sizeof(uint8_t ));
+    SerialReadBytes(response, sizeof(response) / sizeof(uint8_t ));
 
-    if (CheckResponse(response, (sizeof(response) / sizeof(unsigned char)))) {
-      for (int i = 0; i < (sizeof(response) / sizeof(unsigned char) - 5) / 2; i++) {
+    if (CheckResponse(response, (sizeof(response) / sizeof(uint8_t )))) {
+      for (int i = 0; i < (sizeof(response) / sizeof(uint8_t ) - 5) / 2; i++) {
         values[i] = response[2 * i + 3];
         values[i] <<= 8;
         values[i] += response[2 * i + 4];
@@ -101,32 +99,32 @@ double GetTemp() {
   return ((double)((res * 0.02) - 273.15));
 }
 
-void GetCRC(unsigned char message[], unsigned char crc[], int message_size) {
+void GetCRC(uint8_t  message[], uint8_t  crc[], int message_size) {
   unsigned short CRCFull = 0xFFFF;
-  unsigned char CRCHigh = 0xFF, CRCLow = 0xFF;
-  char CRCLSB;
+  uint8_t  CRCHigh = 0xFF, CRCLow = 0xFF;
+  uint8_t CRCLSB;
   for (int i = 0; i < message_size - 2; i++) {
     CRCFull = (unsigned short)(CRCFull ^ message[i]);
     for (int j = 0; j < 8; j++) {
-      CRCLSB = (char)(CRCFull & 0x0001);
+      CRCLSB = (uint8_t)(CRCFull & 0x0001);
       CRCFull = (unsigned short)((CRCFull >> 1) & 0x7FFF);
       if (CRCLSB == 1)
         CRCFull = (unsigned short)(CRCFull ^ 0xA001);
     }
   }
-  crc[1] = CRCHigh = (unsigned char)((CRCFull >> 8) & 0xFF);
-  crc[0] = CRCLow = (unsigned char)(CRCFull & 0xFF);
+  crc[1] = CRCHigh = (uint8_t )((CRCFull >> 8) & 0xFF);
+  crc[0] = CRCLow = (uint8_t )(CRCFull & 0xFF);
 }
 
 
-void BuildMessage(unsigned char address, unsigned char type, unsigned short start, unsigned short registers, unsigned char message[], int message_size) {
-  unsigned char crc[2];
+void BuildMessage(uint8_t  address, uint8_t  type, unsigned short start, unsigned short registers, uint8_t  message[], int message_size) {
+  uint8_t  crc[2];
   message[0] = address;
   message[1] = type;
-  message[2] = (unsigned char)(start >> 8);
-  message[3] = (unsigned char)start;
-  message[4] = (unsigned char)(registers >> 8);
-  message[5] = (unsigned char)registers;
+  message[2] = (uint8_t )(start >> 8);
+  message[3] = (uint8_t )start;
+  message[4] = (uint8_t )(registers >> 8);
+  message[5] = (uint8_t )registers;
   GetCRC(message, crc, message_size);
   message[message_size - 2] = crc[0];
   message[message_size - 1] = crc[1];
@@ -134,16 +132,14 @@ void BuildMessage(unsigned char address, unsigned char type, unsigned short star
 
 
 
-int CheckResponse(unsigned char response[], int response_size) {
-  unsigned char crc[2];
+int CheckResponse(uint8_t  response[], int response_size) {
+  uint8_t  crc[2];
   GetCRC(response, crc, response_size);
   if (crc[0] == response[response_size - 2] && crc[1] == response[response_size - 1])
     return 1;
   else
     return 0;
 }
-
-unsigned char te;
 
 int main(void){
 	
@@ -175,8 +171,15 @@ int main(void){
 	
 	
 	while(1){
+		char te[10];
    res2 = GetTemp();
-		Delay(1000);
+		sprintf(te,"%lf\r\n",res2);
+		SerialPrintln(te);
+		Delay(100000);
+	//	while(!(USART2->SR & (0x01<<5)));
+    //uint8_t  da = USART2->DR;
+		//USART2->DR = da;
+		//while(!(USART2->SR & (0x01<<6)));
 	//	while(!(USART1->SR & (0x01<<5)));
  //   te = USART1->DR;
 //		USART2->DR = te;
